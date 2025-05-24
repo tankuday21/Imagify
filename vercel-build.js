@@ -40,12 +40,13 @@ try {
 
   // Step 4: Run the build
   console.log('🔨 Building the application...');
-  execSync('npx vite build', {
+  execSync('npx vite build --mode production', {
     stdio: 'inherit',
     env: {
       ...process.env,
       NODE_ENV: 'production',
-      CI: 'true'
+      CI: 'true',
+      VITE_APP_TITLE: 'Imagify'
     }
   });
 

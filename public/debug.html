@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagify Debug Page</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .success { background: rgba(34, 197, 94, 0.3); }
+        .error { background: rgba(239, 68, 68, 0.3); }
+        .warning { background: rgba(245, 158, 11, 0.3); }
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Imagify Debug Page</h1>
+        <p>This page helps diagnose deployment issues.</p>
+        
+        <div id="status-container">
+            <div class="status" id="basic-status">
+                ✅ Basic HTML loaded successfully
+            </div>
+        </div>
+
+        <h2>🧪 Tests</h2>
+        <button onclick="testReactApp()">Test React App</button>
+        <button onclick="testAssets()">Test Assets</button>
+        <button onclick="testAPI()">Test API Endpoints</button>
+        <button onclick="clearResults()">Clear Results</button>
+
+        <div id="results"></div>
+
+        <h2>📊 Environment Info</h2>
+        <pre id="env-info"></pre>
+    </div>
+
+    <script>
+        // Display environment info
+        document.getElementById('env-info').textContent = JSON.stringify({
+            userAgent: navigator.userAgent,
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            screen: `${screen.width}x${screen.height}`,
+            viewport: `${window.innerWidth}x${window.innerHeight}`
+        }, null, 2);
+
+        function addResult(message, type = 'status') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testReactApp() {
+            addResult('🔄 Testing React app...', 'warning');
+            
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    const html = await response.text();
+                    if (html.includes('root')) {
+                        addResult('✅ React app HTML structure found', 'success');
+                    } else {
+                        addResult('❌ React app HTML structure missing', 'error');
+                    }
+                } else {
+                    addResult(`❌ Failed to load React app: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error testing React app: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAssets() {
+            addResult('🔄 Testing assets...', 'warning');
+            
+            const assets = ['/favicon.png', '/src/main.jsx'];
+            
+            for (const asset of assets) {
+                try {
+                    const response = await fetch(asset);
+                    if (response.ok) {
+                        addResult(`✅ Asset loaded: ${asset}`, 'success');
+                    } else {
+                        addResult(`❌ Asset failed: ${asset} (${response.status})`, 'error');
+                    }
+                } catch (error) {
+                    addResult(`❌ Asset error: ${asset} - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testAPI() {
+            addResult('🔄 Testing API endpoints...', 'warning');
+            addResult('ℹ️ This is a client-side app, no API endpoints to test', 'status');
+        }
+
+        // Auto-run basic tests
+        setTimeout(() => {
+            testReactApp();
+            testAssets();
+        }, 1000);
+    </script>
+</body>
+</html>
